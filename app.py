@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-key")
@@ -51,7 +51,7 @@ def index():
     posts = Post.query
     if q:
         like = f"%{q}%"
-        posts = posts.filter(db.or_(Post.author.ilike(like), Post.content.ilike(like)))
+        posts = posts.filter(or_(Post.author.ilike(like), Post.content.ilike(like)))
     posts = posts.order_by(Post.created_at.desc()).all()
     counts = dict(db.session.query(Comment.post_id, func.count(Comment.id)).group_by(Comment.post_id).all())
     return render_template("index.html", posts=posts, counts=counts, q=q or "")
